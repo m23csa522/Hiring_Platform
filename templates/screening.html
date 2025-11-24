@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h3 class="mb-4">Resume Screening</h3>
+
+<div class="row">
+
+    <!-- Option 1: Upload and Store Resumes -->
+    <div class="col-md-6">
+        <div class="card shadow-sm p-3">
+            <h5>Upload Resumes (Store)</h5>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="upload_resume">
+                <div class="mb-3">
+                    <label>Select Resume (PDF):</label>
+                    <input type="file" name="resume" class="form-control" required>
+                </div>
+                <button class="btn btn-success">Upload Resume</button>
+            </form>
+        </div>
+
+        {% if resume_msg %}
+        <div class="alert alert-info mt-3">{{ resume_msg }}</div>
+        {% endif %}
+    </div>
+
+    <!-- Option 2: Upload JD & Get Matching Profiles -->
+    <div class="col-md-6">
+        <div class="card shadow-sm p-3">
+            <h5>Upload Job Description (JD)</h5>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="match_jd">
+                <div class="mb-3">
+                    <label>Upload JD File (PDF/TXT):</label>
+                    <input type="file" name="jd" class="form-control" required>
+                </div>
+                <button class="btn btn-primary">Find Matching Profiles</button>
+            </form>
+        </div>
+
+        {% if matches %}
+        <h5 class="mt-4">Matching Profiles</h5>
+        <ul class="list-group">
+            {% for m in matches %}
+            <li class="list-group-item d-flex justify-content-between">
+                <span>{{ m.name }}</span>
+                <span class="badge bg-success">Score: {{ m.score }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

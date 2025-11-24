@@ -1,0 +1,5 @@
+pypdf
+unidecode
+spacy
+openai
+python-dotenv

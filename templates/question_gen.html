@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>AI Question Generation</h4>
+<form method="post">
+  {% csrf_token %}
+  <select name="domain" class="form-select w-25">
+    <option>ML Engineer</option>
+    <option>Data Scientist</option>
+    <option>UI Developer</option>
+  </select>
+  <button type="submit" class="btn btn-primary mt-2">Generate</button>
+</form>
+
+{% if questions %}
+<h5 class="mt-4">Generated Questions</h5>
+<ul class="list-group">
+  {% for q in questions %}
+  <li class="list-group-item">{{ q }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

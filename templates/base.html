@@ -1,0 +1,23 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Interview Platform</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <a class="navbar-brand ms-3" href="/">AI Interview</a>
+    <div class="navbar-nav">
+      <a class="nav-link" href="/screening/">Screening</a>
+      <a class="nav-link" href="/questions/">Questions</a>
+      <a class="nav-link" href="/interviews/">Interviews</a>
+      <a class="nav-link" href="/reports/">Reports</a>
+    </div>
+  </nav>
+  <div class="container mt-4">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

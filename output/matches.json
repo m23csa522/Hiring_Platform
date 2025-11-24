@@ -1,0 +1,110 @@
+[
+  {
+    "jd_id": "JD-1.pdf",
+    "jd_title": "Senior Consultant - Advanced Analytics / ML / AI",
+    "matches": [
+      {
+        "resume_id": "Bhavesh_Wadhwani_Resume.pdf",
+        "resume_title": "Senior Consultant - Data Science",
+        "score": 0.3908,
+        "matched_skills": [
+          "deep learning",
+          "machine learning",
+          "nlp",
+          "python"
+        ],
+        "matched_domains": [
+          "cloud",
+          "consulting"
+        ],
+        "skill_jaccard": 0.0513,
+        "domain_score": 1.0,
+        "experience_score": 0.8,
+        "experience_years_jd": 6.5,
+        "experience_years_resume": 4.5,
+        "experience_gap": 2.0
+      },
+      {
+        "resume_id": "resume_juanjosecarin.pdf",
+        "resume_title": "Data Scientist",
+        "score": 0.3721,
+        "matched_skills": [
+          "machine learning",
+          "neural networks",
+          "python",
+          "r",
+          "regression",
+          "time series"
+        ],
+        "matched_domains": [
+          "data_platforms"
+        ],
+        "skill_jaccard": 0.1034,
+        "domain_score": 1.0,
+        "experience_score": 0.55,
+        "experience_years_jd": 6.5,
+        "experience_years_resume": 11,
+        "experience_gap": 4.5
+      },
+      {
+        "resume_id": "hanani.pdf",
+        "resume_title": "Machine Learning Engineer",
+        "score": 0.3665,
+        "matched_skills": [
+          "deep learning",
+          "machine learning",
+          "mlops",
+          "nlp",
+          "python",
+          "r",
+          "statistics"
+        ],
+        "matched_domains": [
+          "cloud",
+          "data_platforms"
+        ],
+        "skill_jaccard": 0.0609,
+        "domain_score": 1.0,
+        "experience_score": 0.65,
+        "experience_years_jd": 6.5,
+        "experience_years_resume": 3,
+        "experience_gap": 3.5
+      },
+      {
+        "resume_id": "yama.pdf",
+        "resume_title": "Data Scientist",
+        "score": 0.2208,
+        "matched_skills": [
+          "classification",
+          "machine learning",
+          "python",
+          "r",
+          "regression"
+        ],
+        "matched_domains": [],
+        "skill_jaccard": 0.0847,
+        "domain_score": 0.0,
+        "experience_score": 0.85,
+        "experience_years_jd": 6.5,
+        "experience_years_resume": 5,
+        "experience_gap": 1.5
+      },
+      {
+        "resume_id": "front-end-developer-resume-example.pdf",
+        "resume_title": "Front-End Developer",
+        "score": 0.1643,
+        "matched_skills": [
+          "mentoring",
+          "python"
+        ],
+        "matched_domains": [],
+        "skill_jaccard": 0.0571,
+        "domain_score": 0.0,
+        "experience_score": 0.65,
+        "experience_years_jd": 6.5,
+        "experience_years_resume": 3,
+        "experience_gap": 3.5
+      }
+    ]
+  }
+]

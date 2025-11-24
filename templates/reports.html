@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h4>Evaluation Report</h4>
+<table class="table table-bordered">
+<tr><th>Candidate</th><td>{{ data.candidate }}</td></tr>
+<tr><th>Technical</th><td>{{ data.technical }}</td></tr>
+<tr><th>Communication</th><td>{{ data.communication }}</td></tr>
+<tr><th>Confidence</th><td>{{ data.confidence }}</td></tr>
+</table>
+<a href="#" class="btn btn-outline-primary">Download PDF</a>
+{% endblock %}

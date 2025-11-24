@@ -1,0 +1,26 @@
+# Env files
+.env
+scripts/resume_mapping/.env
+# Ignore all PDFs (anywhere)
+*.pdf
+
+# Local DB
+db.sqlite3
+
+scripts/resume_mapping/Untitled.ipynb
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Jupyter junk
+**/.ipynb_checkpoints/
+
+# Ignore common video formats (anywhere)
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wmv
+*.flv
+*.webm
