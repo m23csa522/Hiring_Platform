@@ -3,7 +3,7 @@ from django.core.files.storage import FileSystemStorage
 import os
 import subprocess
 import torch
-# do not import heavy/optional libs at module import time (can break Django startup)
+import whisper
 
 def extract_audio(video_path, output_path):
     """Extract WAV audio from uploaded video using FFmpeg."""
@@ -21,14 +21,6 @@ def extract_audio(video_path, output_path):
 
 def transcribe_audio(audio_path):
     """Whisper STT."""
-    try:
-        import whisper
-    except Exception as e:
-        raise RuntimeError(
-            "Could not import `whisper`. Install the correct package (e.g. 'openai-whisper') "
-            f"or ensure the environment is configured. Import error: {e}"
-        )
-
     model = whisper.load_model("base")   # small/medium/base
     result = model.transcribe(audio_path)
     return result["text"]
@@ -76,13 +68,7 @@ def interview_view(request):
                 speakers = [f"Speaker diarization failed: {e}"]
 
             # ---- SPEECH TO TEXT ----
-            try:
-                transcript = transcribe_audio(audio_path)
-            except Exception as e:
-                transcript = f"Transcription failed: {e}"
-
-            fs = FileSystemStorage(location="media/transcripts/")
-            filename = fs.save(video_name.replace(".mp4", ".txt"), transcript)
+            transcript = transcribe_audio(audio_path)
 
             context.update({
                 "msg": f"Video '{video_name}' uploaded successfully!",
