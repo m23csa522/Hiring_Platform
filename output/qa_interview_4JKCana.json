@@ -1,0 +1,34 @@
+[
+  {
+    "question": "What is the variance and bias trade off?",
+    "answer": "Bias can be defined as essentially the deviation of a model prediction from the training data, whereas variance can be defined as deviation of the model predictions from any unobserved or test data. Typically bias and variance tend to be negatively correlated, so we need to make this bias-variance trade off to improve the variance most often, usually at the cost of bias."
+  },
+  {
+    "question": "Does the flexibility of the model have anything to do with the variance and bias trade off?",
+    "answer": "The decision boundary would definitely shift as we make the bias-variance trade off because we are changing the errors. Whether the decision boundary expands or contracts depends on the direction in which we choose to make our bias-variance trade off. The criteria that govern whether a single record should be classified as one or zero might increase or decrease based on how we choose to increase the variance of this classification model."
+  },
+  {
+    "question": "What's the difference between boosting and bagging?",
+    "answer": "Boosting and bagging are both ensemble machine learning techniques. Bagging uses the bootstrap sampling method to randomly sample with replacement multiple subsamples of the data on which we train weak learners and then aggregate their final predictions to create the final prediction. Boosting is also an ensemble technique, but the subsequent subsamples of the data depend on how well the previous model in the ensemble predicted the target of that record."
+  },
+  {
+    "question": "In both boosting and bagging, as you increase the number of trees, how does that affect the variance and bias of the boosting-based model versus the bagging-based model?",
+    "answer": "In boosting, subsequent subsampling tends to oversample records that were badly predicted by previous learners, so as the number of models increases, the model tends to overfit, meaning bias goes down and variance may go up. In bagging, since we simply increase the number of learners, the variance tends to go down and the bias typically goes up."
+  },
+  {
+    "question": "How would you detect seller fraud on Amazon.com?",
+    "answer": "First, I would clarify that seller fraud involves sellers misrepresenting information on their listing page causing buyers to make unexpected purchase decisions. Since sellers can have multiple transactions and not all may be fraudulent, we would need to identify a decision boundary on the number of fraudulent transactions to segment a seller as fraudulent. I would break down factors at the transaction level into seller-based, listing-based, and transaction-based. Seller-based factors include tenure, number of listings, and positive reviews, as tenured sellers with many listings and positive reviews are less likely fraudulent. Listing-based factors include misrepresentations in item title, images, and description. Transaction-based factors include number of previous transactions and how quickly the seller withdraws money, as fraudsters tend to monetize quickly. I would create features around these factors and label data based on true fraud intent to predict fraud."
+  },
+  {
+    "question": "Assuming labels exist, what is the next step for you?",
+    "answer": "Assuming we have labels at the transaction level indicating whether a transaction was fraud or not, and a label applied to sellers (e.g., blacklisting), I would include the seller label as a feature in seller-based attributes and focus mainly on transaction-level data. I would create features from the different factors and use a binary classification model like logistic regression, decision trees, or random forest to predict fraud. Since fraud is a rare event, the positive to negative ratio is very low, so to avoid high accuracy from predicting all non-fraud, I would oversample fraudulent transactions or exclude non-fraud characteristics early to create a focused dataset for modeling."
+  },
+  {
+    "question": "Can you talk a little bit more about the feature engineering and feature selection process during the model?",
+    "answer": "Since the target variable is binary, I cannot use raw string features directly and would need encoding. For example, tenure would be a continuous variable representing time from first transaction. For item title, I could create binary features indicating if the title matches the description (all words present), which indicates consistency. For positive reviews, I would count the number of positive reviews on the item. Essentially, I would extract additional signals from raw data to incorporate into the model."
+  },
+  {
+    "question": "How do you ultimately apply feature selection to decide which signals should belong in a model?",
+    "answer": "For feature selection in a classification model, I would draw parallels to regularization techniques like lasso used in continuous targets. I could initially implement models like random forest which provide variable importance measures to help select features. Although I cannot clearly articulate the exact process, I know random forest has estimators that provide variable importance signals useful for feature selection."
+  }
+]

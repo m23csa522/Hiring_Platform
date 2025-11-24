@@ -18,7 +18,6 @@
             </div>
 
             <p class="mt-2 text-muted">Recording is stored locally for now.</p>
-
         </div>
     </div>
 
@@ -56,12 +55,13 @@
         };
 
         stopBtn.onclick = () => {
-            mediaRecorder.stop();
+            if (mediaRecorder) {
+                mediaRecorder.stop();
+            }
             startBtn.disabled = false;
             stopBtn.disabled = true;
         };
     </script>
-
 
     <!-- OPTION 2: UPLOAD RECORDED INTERVIEW VIDEO -->
     <div class="col-md-6">
@@ -71,7 +71,7 @@
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="upload_video">
-                
+
                 <div class="mb-3">
                     <label>Select Video File (mp4/webm/mov):</label>
                     <input type="file" class="form-control" name="interview_video" accept="video/*" required>
@@ -88,21 +88,42 @@
 
 </div>
 
-{% if transcript %}
+{# --- Conversation view (speaker + text turns) --- #}
+{% if conversation %}
 <div class="card p-3 mt-4">
-    <h5>Speech-to-Text Transcript</h5>
+    <h5>Conversation</h5>
+    <div>
+        {% for turn in conversation %}
+            <p><strong>{{ turn.speaker }}:</strong> {{ turn.text }}</p>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# --- Full transcript (raw text) --- #}
+{% if transcript %}
+<div class="card p-3 mt-3">
+    <h5>Full Transcript</h5>
     <p>{{ transcript }}</p>
 </div>
 {% endif %}
 
+{# --- Optional speaker timeline from diarization (if available) --- #}
 {% if speakers %}
-<div class="card p-3 mt-4">
-    <h5>Speaker Identification</h5>
+<div class="card p-3 mt-3">
+    <h5>Speaker Timeline</h5>
     <ul>
         {% for s in speakers %}
-        <li>{{ s }}</li>
+            <li>{{ s }}</li>
         {% endfor %}
     </ul>
+</div>
+{% endif %}
+
+{# --- Optional diarization error display --- #}
+{% if diarization_error %}
+<div class="alert alert-warning mt-3">
+    Speaker diarization issue: {{ diarization_error }}
 </div>
 {% endif %}
 
