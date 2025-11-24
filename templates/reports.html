@@ -1,11 +1,50 @@
 {% extends 'base.html' %}
 {% block content %}
 <h4>Evaluation Report</h4>
-<table class="table table-bordered">
-<tr><th>Candidate</th><td>{{ data.candidate }}</td></tr>
-<tr><th>Technical</th><td>{{ data.technical }}</td></tr>
-<tr><th>Communication</th><td>{{ data.communication }}</td></tr>
-<tr><th>Confidence</th><td>{{ data.confidence }}</td></tr>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="run_eval">
+    <button class="btn btn-primary mb-3" id="getReportBtn" type="submit">Get Evaluation Report</button>
+</form>
+<!-- <table class="table table-bordered">
+    <tr><th>Candidate</th><td>{{ data.candidate }}</td></tr>
+    <tr><th>Technical</th><td>{{ data.technical }}</td></tr>
+    <tr><th>Communication</th><td>{{ data.communication }}</td></tr>
+    <tr><th>Confidence</th><td>{{ data.confidence }}</td></tr>
+</table> -->
+
+{% if average_score %}
+<div class="mb-3">
+    <h5>Average Score: <span id="avgScore" class="font-weight-bold text-primary">{{ average_score }}</span></h5>
+</div>
+{% endif %}
+
+
+{% if data %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Question</th>
+            <th>Answer</th>
+            <th>Score</th>
+            <th>Feedback</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for q in data %}
+        <tr>
+            <td>{{ q.question|default:'' }}</td>
+            <td>{{ q.user_answer|default:'' }}</td>
+            <td>{{ q.score|default:'' }}</td>
+            <td>{{ q.feedback|default:'' }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
+{% else %}
+<p class="text-muted">No report available.</p>
+{% endif %}
+
 <a href="#" class="btn btn-outline-primary">Download PDF</a>
 {% endblock %}
