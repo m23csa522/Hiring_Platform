@@ -222,32 +222,32 @@ def initialize_rag():
     """Initialize embeddings and LLM"""
     global vector_db, llm, embeddings
     
-    embeddings = AzureOpenAIEmbeddings(
-        api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-        api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview"),
-        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-        model="text-embedding-ada-002"
-    )
+    # embeddings = AzureOpenAIEmbeddings(
+    #     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+    #     api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview"),
+    #     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    #     model="text-embedding-ada-002"
+    # )
     
-    llm = AzureChatOpenAI(
-        api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-        api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview"),
-        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-        model="gpt-4.1",
-        temperature=0.7
+    # llm = AzureChatOpenAI(
+    #     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+    #     api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview"),
+    #     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    #     model="gpt-4.1",
+    #     temperature=0.7
+    # )
+
+    embeddings = OpenAIEmbeddings(
+    model="text-embedding-3-small",      # or "text-embedding-3-large"
+    api_key=os.getenv("OPENAI_API_KEY")  # standard OpenAI key
+)
+
+    # Chat LLM (non-Azure)
+    llm = ChatOpenAI(
+        model="gpt-5.1",                     # or "gpt-4.1", etc.
+        temperature=0.7,
+        api_key=os.getenv("OPENAI_API_KEY")
     )
-
-#     embeddings = OpenAIEmbeddings(
-#     model="text-embedding-3-small",      # or "text-embedding-3-large"
-#     api_key=os.getenv("OPENAI_API_KEY")  # standard OpenAI key
-# )
-
-#     # Chat LLM (non-Azure)
-#     llm = ChatOpenAI(
-#         model="gpt-5.1",                     # or "gpt-4.1", etc.
-#         temperature=0.7,
-#         api_key=os.getenv("OPENAI_API_KEY")
-#     )
     print("✓ Azure OpenAI Embeddings and LLM initialized")
 
 def load_all_documents():
