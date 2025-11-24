@@ -8,7 +8,7 @@ scripts/resume_mapping/.env
 db.sqlite3
 
 scripts/resume_mapping/Untitled.ipynb
-
+media/
 # Python cache
 __pycache__/
 *.py[cod]
