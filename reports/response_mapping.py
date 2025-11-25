@@ -357,7 +357,7 @@ User Answer: {state['user_answer']}
 Reference Context (from multiple sources):
 {state['retrieved_context']}
 
-Provide evaluation in this exact format
+Provide evaluation in this exact format:
 SCORE: [0-100]
 MATCH: [YES/NO]
 CORRECT_ANSWER: [Brief correct answer based on sources]
@@ -383,7 +383,7 @@ Be fair and base evaluation on reference materials provided."""
         
         response = llm.invoke([HumanMessage(content=prompt)])
         eval_text = response.content
-        print("Evaluation Response:\n", eval_text)
+        
         # Parse response
         score = 70
         match = "NO"
@@ -395,18 +395,6 @@ Be fair and base evaluation on reference materials provided."""
         match = eval_json.get("MATCH", "NO")
         correct_answer = eval_json.get("CORRECT_ANSWER", "")
         feedback = eval_json.get("FEEDBACK", "")
-        # for line in eval_text.split("\n"):
-        #     if "SCORE:" in line:
-        #         try:
-        #             score = int(line.split("SCORE:")[1].strip().split()[0])
-        #         except:
-        #             pass
-        #     elif "MATCH:" in line:
-        #         match = "YES" if "YES" in line else "NO"
-        #     elif "CORRECT_ANSWER:" in line:
-        #         correct_answer = line.split("CORRECT_ANSWER:")[1].strip()
-        #     elif "FEEDBACK:" in line:
-        #         feedback = line.split("FEEDBACK:")[1].strip()
         
         state["evaluation"] = eval_json
         state["score"] = score
@@ -538,13 +526,6 @@ async def evaluate_answer(response: QuestionResponse):
             correct_answer = eval_text.get("CORRECT_ANSWER", "")
         if "FEEDBACK" in list(eval_text.keys()):
             feedback = eval_text.get("FEEDBACK", "")
-        # for line in eval_text.split("\n"):
-        #     if "MATCH:" in line:
-        #         matches = "YES" in line
-        #     elif "CORRECT_ANSWER:" in line:
-        #         correct_answer = line.split("CORRECT_ANSWER:")[1].strip()
-        #     elif "FEEDBACK:" in line:
-        #         feedback = line.split("FEEDBACK:")[1].strip()
         
         return EvaluationResult(
             question=response.question,
@@ -644,16 +625,6 @@ def extract_resume_jd_features(resume_text: str, jd_text: str) -> str:
     """
     response = llm.invoke([HumanMessage(content=prompt)]).content
     return response.strip()
-
-# def generate_questions_boilerplate(topic_profile: str, count: int) -> List[str]:
-#     if not vector_db:
-#         return []
-#     results = vector_db.similarity_search(topic_profile, k=count)
-#     questions = []
-#     for r in results:
-#         qs = [q.strip() for q in r.page_content.splitlines() if q.strip()]
-#         questions.extend(qs)
-#     return questions[:count]
 
 def generate_questions_boilerplate(domain:str,topic_profile: str, count: int) -> List[str]:
     if not vector_db:
