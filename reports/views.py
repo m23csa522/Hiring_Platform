@@ -10,55 +10,80 @@ def reports_view(request):
     if request.method == "POST":
         action = request.POST.get("action")
 
+        # ---------------------------
+        # RUN EVALUATION
+        # ---------------------------
         if action == "run_eval":
-            media_root = Path(settings.MEDIA_ROOT) if getattr(settings, 'MEDIA_ROOT', None) else Path(settings.BASE_DIR) / 'media'
-            transcripts_dir = media_root / 'transcripts'
-            transcripts = [p.name for p in transcripts_dir.glob('*.txt')] if transcripts_dir.exists() else []
+            media_root = Path(settings.BASE_DIR) / 'output'
+            qa_pairs_path = media_root / 'qa_interview_4JKCana.json'
 
-            if transcripts:
-                first_path = transcripts_dir / transcripts[0]
-                try:
-                    with first_path.open('r', encoding='utf-8') as f:
-                        first_transcript = f.read()
-                except Exception:
-                    first_transcript = ''
-            else:
-                first_transcript = ''
-
-            if len(first_transcript) > 0:
-                url = "http://127.0.0.1:7001/extract-transcript"
-                payload = {'transcript_text': first_transcript}
-                headers = {'Content-Type': 'application/json'}
-                response = requests.post(url, json=payload, headers=headers)
-                if response.status_code == 200:
-                    qapairs = response.json().get('qa_pairs', [])
-                else:
-                    qapairs = []
-            else:
+            try:
+                with qa_pairs_path.open('r', encoding='utf-8') as f:
+                    import json
+                    qapairs = json.load(f)
+            except:
                 qapairs = []
 
-            if len(qapairs) > 0:
-                evaluation_result = []   
+            evaluation_result = []
+            if qapairs:
                 url = "http://127.0.0.1:7001/evaluate"
+
                 for i in qapairs:
-                    payload = {"question": i.get("question"), "user_answer": i.get("answer")}
+                    payload = {
+                        "question": i.get("question"),
+                        "user_answer": i.get("answer")
+                    }
                     headers = {'Content-Type': 'application/json'}
                     response = requests.post(url, json=payload, headers=headers)
-                    if response.status_code == 200:
-                        evaluation = response.json()
-                        evaluation_result.append(evaluation)
-                    else:
-                        # Handle 
-                        print("Evaluation request failed for question:", i.get("question"))
-                        pass
-            else:
-                evaluation_result = []
 
-            if len(evaluation_result) > 0:
-                average_score = sum(item.get('score', 0) for item in evaluation_result) / len(evaluation_result)
+                    if response.status_code == 200:
+                        evaluation_result.append(response.json())
+
+            if evaluation_result:
+                average_score = sum(i.get("score", 0) for i in evaluation_result) / len(evaluation_result)
                 data = evaluation_result
             else:
                 data = None
                 average_score = None
 
-    return render(request, 'reports.html', {'data': data, 'average_score': average_score})
+            request.session["data"] = data
+            request.session["average_score"] = average_score
+
+            return render(request, "reports.html", {
+                "data": data,
+                "average_score": average_score
+            })
+
+        # ---------------------------
+        # DOWNLOAD PDF
+        # ---------------------------
+        if action == "download_pdf":
+            from xhtml2pdf import pisa
+            from django.http import HttpResponse
+            from django.template.loader import render_to_string
+
+            # Get stored session data
+            data = request.session.get("data")
+            average_score = request.session.get("average_score")
+
+            # Use a dedicated PDF template
+            html = render_to_string("reports_pdf.html", {
+                "data": data,
+                "average_score": average_score
+            })
+
+            response = HttpResponse(content_type="application/pdf")
+            response["Content-Disposition"] = "attachment; filename=report.pdf"
+
+            pisa_status = pisa.CreatePDF(html, dest=response)
+
+            if pisa_status.err:
+                return HttpResponse("Error generating PDF", status=500)
+
+            return response
+
+    return render(request, "reports.html", {
+        "data": data,
+        "average_score": average_score
+    })
+

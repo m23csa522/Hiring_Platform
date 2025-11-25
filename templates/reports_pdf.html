@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 6px;
+        }
+        h2 { text-align: center; }
+    </style>
+</head>
+<body>
+
+<h2>Evaluation Report</h2>
+
+{% if average_score %}
+<p><strong>Average Score:</strong> {{ average_score }}</p>
+{% endif %}
+
+{% if data %}
+<table>
+    <thead>
+    <tr>
+        <th>Question</th>
+        <th>Answer</th>
+        <th>Score</th>
+        <th>Feedback</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for q in data %}
+    <tr>
+        <td>{{ q.question }}</td>
+        <td>{{ q.user_answer }}</td>
+        <td>{{ q.score }}</td>
+        <td>{{ q.feedback }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+</body>
+</html>
