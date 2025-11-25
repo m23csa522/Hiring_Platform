@@ -73,6 +73,19 @@ class ProcessingStats(BaseModel):
     total_chunks: int
     documents: List[DocumentStatus]
 
+
+class QuestionRequest(BaseModel):
+    num_questions: int = 10
+    topic: Optional[str] = None
+    resume_id: Optional[str] = None
+    jd_id: Optional[str] = None
+
+class QuestionGenerationResult(BaseModel):
+    questions: List[str]
+    boilerplate_count: int
+    web_count: int
+    #generated_at: str
+
 # ============== STATE ==============
 class InterviewState(TypedDict):
     question: str
@@ -344,11 +357,11 @@ User Answer: {state['user_answer']}
 Reference Context (from multiple sources):
 {state['retrieved_context']}
 
-Provide evaluation in this exact format:
+Provide evaluation in this exact format
 SCORE: [0-100]
 MATCH: [YES/NO]
 CORRECT_ANSWER: [Brief correct answer based on sources]
-FEEDBACK: [Detailed constructive feedback]
+FEEDBACK: [Detailed constructive feedback in less than 200 words]
 
 Scoring guidelines:
 - 90-100: Excellent, comprehensive answer
@@ -357,31 +370,45 @@ Scoring guidelines:
 - 40-59: Partial, missing key elements
 - 0-39: Incomplete or incorrect
 
+Format your response as a JSON object with exactly this structure:
+
+{{"SCORE": 85,
+"MATCH": "YES",
+"CORRECT_ANSWER": "The correct answer is...",
+"FEEDBACK": "Your answer was good because..." }}
+
+IMPORTANT: Return ONLY the JSON array, nothing else. No markdown, no explanations.
+
 Be fair and base evaluation on reference materials provided."""
         
         response = llm.invoke([HumanMessage(content=prompt)])
         eval_text = response.content
-        
+        print("Evaluation Response:\n", eval_text)
         # Parse response
         score = 70
         match = "NO"
         correct_answer = ""
         feedback = ""
         
-        for line in eval_text.split("\n"):
-            if "SCORE:" in line:
-                try:
-                    score = int(line.split("SCORE:")[1].strip().split()[0])
-                except:
-                    pass
-            elif "MATCH:" in line:
-                match = "YES" if "YES" in line else "NO"
-            elif "CORRECT_ANSWER:" in line:
-                correct_answer = line.split("CORRECT_ANSWER:")[1].strip()
-            elif "FEEDBACK:" in line:
-                feedback = line.split("FEEDBACK:")[1].strip()
+        eval_json = json.loads(eval_text)
+        score = eval_json.get("SCORE", 70)
+        match = eval_json.get("MATCH", "NO")
+        correct_answer = eval_json.get("CORRECT_ANSWER", "")
+        feedback = eval_json.get("FEEDBACK", "")
+        # for line in eval_text.split("\n"):
+        #     if "SCORE:" in line:
+        #         try:
+        #             score = int(line.split("SCORE:")[1].strip().split()[0])
+        #         except:
+        #             pass
+        #     elif "MATCH:" in line:
+        #         match = "YES" if "YES" in line else "NO"
+        #     elif "CORRECT_ANSWER:" in line:
+        #         correct_answer = line.split("CORRECT_ANSWER:")[1].strip()
+        #     elif "FEEDBACK:" in line:
+        #         feedback = line.split("FEEDBACK:")[1].strip()
         
-        state["evaluation"] = eval_text
+        state["evaluation"] = eval_json
         state["score"] = score
         state["messages"].append(
             AIMessage(content=f"Evaluation complete. Score: {score}")
@@ -505,13 +532,19 @@ async def evaluate_answer(response: QuestionResponse):
         feedback = ""
         matches = False
         
-        for line in eval_text.split("\n"):
-            if "MATCH:" in line:
-                matches = "YES" in line
-            elif "CORRECT_ANSWER:" in line:
-                correct_answer = line.split("CORRECT_ANSWER:")[1].strip()
-            elif "FEEDBACK:" in line:
-                feedback = line.split("FEEDBACK:")[1].strip()
+        if "MATCH" in list(eval_text.keys()):
+            matches = eval_text.get("MATCH", "NO")
+        if "CORRECT_ANSWER" in list(eval_text.keys()):
+            correct_answer = eval_text.get("CORRECT_ANSWER", "")
+        if "FEEDBACK" in list(eval_text.keys()):
+            feedback = eval_text.get("FEEDBACK", "")
+        # for line in eval_text.split("\n"):
+        #     if "MATCH:" in line:
+        #         matches = "YES" in line
+        #     elif "CORRECT_ANSWER:" in line:
+        #         correct_answer = line.split("CORRECT_ANSWER:")[1].strip()
+        #     elif "FEEDBACK:" in line:
+        #         feedback = line.split("FEEDBACK:")[1].strip()
         
         return EvaluationResult(
             question=response.question,
@@ -592,6 +625,92 @@ Now extract all Q&A pairs:"""
     except Exception as e:
         print(f"Error extracting QA pairs: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+# ================= HYBRID QUESTION GENERATOR =================
+
+def extract_resume_jd_features(resume_text: str, jd_text: str) -> str:
+    """Summarize candidate experience + job requirements for targeted question selection."""
+    prompt = f"""
+    Summarize the key skills, experience, technologies, responsibilities, and domain knowledge extracted from the following:
+
+    RESUME:
+    {resume_text}
+
+    JOB DESCRIPTION:
+    {jd_text}
+
+    Return a single compact topic profile describing what interview questions should be asked.
+    """
+    response = llm.invoke([HumanMessage(content=prompt)]).content
+    return response.strip()
+
+# def generate_questions_boilerplate(topic_profile: str, count: int) -> List[str]:
+#     if not vector_db:
+#         return []
+#     results = vector_db.similarity_search(topic_profile, k=count)
+#     questions = []
+#     for r in results:
+#         qs = [q.strip() for q in r.page_content.splitlines() if q.strip()]
+#         questions.extend(qs)
+#     return questions[:count]
+
+def generate_questions_boilerplate(domain:str,topic_profile: str, count: int) -> List[str]:
+    if not vector_db:
+        return []
+    results = vector_db.similarity_search(f"Domain: {domain} \n {topic_profile}", k=count)
+
+    questions = []
+
+    for r in results:
+        extraction_prompt = f"""
+        The following text chunk contains multiple interview questions, some mixed with noise.
+        Extract ONLY clean, standalone interview questions. No numbering, no bullets.
+
+        TEXT:
+        {r.page_content}
+
+        Return ONLY a JSON array of strings.
+        """
+
+        resp = llm.invoke([HumanMessage(content=extraction_prompt)]).content
+
+        try:
+            qs = json.loads(resp)
+            if isinstance(qs, list):
+                questions.extend([q.strip() for q in qs if q.strip()])
+        except:
+            continue
+
+    return questions[:count]
+
+def generate_questions_web(domain:str,topic_profile: str, count: int) -> List[str]:
+    prompt = f"""
+    Based on this candidate & job alignment profile and domain "{domain}":
+    {topic_profile}
+
+    Generate {count} highly relevant, real-world, recent interview questions.
+
+    Strict rules:
+    - Each question MUST focus on ONE single challenge or scenario.
+    - No multi-part questions.
+    - No multiple clauses joined with “and”, “while”, “as well as”, “explain how you would…”
+    - No lists of tasks or responsibilities.
+    - No subparts, bullets, numbering, or multi-step wording.
+    - Question must be concise and self-contained.
+    - Each question MUST be a single sentence or paragraph.
+    - Must be unique and aligned with current industry practice.
+    - Should be difficult and role-aligned.
+    - Return ONLY a JSON array of strings
+    """
+    response = llm.invoke([HumanMessage(content=prompt)]).content
+    try:
+        data = json.loads(response)
+        if isinstance(data, list):
+            return data
+    except:
+        pass
+    return []
 
 
 @app.post("/extract-transcript", response_model=QAExtractionResult)
@@ -694,6 +813,48 @@ async def extract_transcript_batch(transcripts: List[TranscriptInput]):
     except Exception as e:
         print(f"Error in batch extraction: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/generate_questions", response_model=QuestionGenerationResult)
+def generate(req: QuestionRequest):
+    if req.num_questions <= 0:
+        raise HTTPException(status_code=400, detail="num_questions must be > 0")
+    
+    RESUME_DIR = media_root / "media" / "resumes"
+    JD_DIR = media_root / "media" / "jd"
+    resume_id = req.resume_id
+    jd_id = req.jd_id
+
+    # Load resume & JD
+    resume_file = RESUME_DIR / f"{resume_id}"
+    jd_file = JD_DIR / f"{jd_id}"
+
+    print(f"Loading resume from: {resume_file}")
+    print(f"Loading JD from: {jd_file}")
+
+    if not resume_file.exists() or not jd_file.exists():
+        raise HTTPException(status_code=500, detail="Missing resume.txt or jd.txt in resumes folder")
+
+    resume_text = load_pdf(resume_file) if resume_file.suffix == ".pdf" else resume_file.read_text(encoding="utf-8")
+    jd_text = load_pdf(jd_file) if jd_file.suffix == ".pdf" else jd_file.read_text(encoding="utf-8")
+
+    # Create topic alignment
+    topic_profile = extract_resume_jd_features(resume_text, jd_text)
+
+    half = req.num_questions // 2
+
+    boiler_qs = generate_questions_boilerplate(req.topic, topic_profile, half)
+    web_qs = generate_questions_web(req.topic, topic_profile, req.num_questions - len(boiler_qs))
+
+    questions = boiler_qs + web_qs
+
+    print(questions)
+
+    return QuestionGenerationResult(
+        questions=questions,
+        boilerplate_count=len(boiler_qs),
+        web_count=len(web_qs),
+        #generated_at=datetime.utcnow().isoformat()
+    )
 
 if __name__ == "__main__":
     import uvicorn

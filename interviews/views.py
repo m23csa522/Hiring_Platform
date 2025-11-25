@@ -7,7 +7,7 @@ import re
 import json
 from pathlib import Path
 
-import whisper
+
 from openai import OpenAI
 from dotenv import load_dotenv
 load_dotenv()
@@ -40,6 +40,7 @@ def extract_audio(video_path, output_path):
 
 
 def transcribe_audio(audio_path):
+    import whisper
     """Run Whisper STT and return ONLY the final text string."""
     model = whisper.load_model("base")   # you can change to "small"/"medium"
     result = model.transcribe(audio_path)

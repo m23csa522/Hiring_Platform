@@ -95,4 +95,7 @@ def screening(request):
 
             context["matches"] = matches
 
+            request.session["resume_id"] = matches[0]["name"] if matches else None
+            request.session["jd_id"] = jd_name
+
     return render(request, "screening.html", context)
